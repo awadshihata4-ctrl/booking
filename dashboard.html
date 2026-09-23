@@ -13,7 +13,7 @@
             background: #0f172a; color: #e2e8f0;
             min-height: 100vh; padding: 20px;
         }
-        .container { max-width: 1500px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         header {
             background: #1e293b; border: 1px solid #334155;
             padding: 15px 25px; border-radius: 15px;
@@ -77,12 +77,12 @@
         }
         .table-wrapper {
             background: #1e293b; border: 1px solid #334155;
-            border-radius: 15px; overflow: hidden;
+            border-radius: 15px; overflow-x: auto;
         }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
         thead { background: #0f172a; }
         thead th {
-            padding: 15px 12px; font-size: 13px;
+            padding: 12px 10px; font-size: 12px;
             color: #94a3b8; font-weight: 600;
             text-align: right; white-space: nowrap;
         }
@@ -92,8 +92,8 @@
         }
         tbody tr:hover { background: #0f172a; }
         tbody td {
-            padding: 15px 12px; font-size: 13px;
-            color: #cbd5e1; vertical-align: top;
+            padding: 12px 10px; font-size: 12px;
+            color: #cbd5e1; vertical-align: middle;
         }
         .badge {
             display: inline-block; padding: 5px 12px;
@@ -131,8 +131,7 @@
         .toast.success { background: #10b981; }
         .toast.error { background: #ef4444; }
         @media (max-width: 900px) {
-            table { font-size: 12px; }
-            thead th, tbody td { padding: 10px 6px; }
+            thead th, tbody td { padding: 10px 8px; }
             header { flex-direction: column; text-align: center; }
             .tab-btn { font-size: 13px; padding: 12px 10px; }
         }
@@ -170,21 +169,17 @@
                     <tr>
                         <th>#</th>
                         <th>اسم العميل</th>
-                        <th>هاتف 1</th>
-                        <th>هاتف 2</th>
+                        <th>الهاتف</th>
                         <th>المنتج</th>
                         <th>السريال</th>
-                        <th>المحافظة</th>
-                        <th>المدينة</th>
                         <th>العنوان</th>
                         <th>العطل</th>
-                        <th>عنوان الحجز</th>
                         <th>الحالة</th>
                         <th>إجراء</th>
                     </tr>
                 </thead>
                 <tbody id="table-new">
-                    <tr><td colspan="13" class="empty">⏳ جاري التحميل...</td></tr>
+                    <tr><td colspan="9" class="empty">⏳ جاري التحميل...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -197,9 +192,7 @@
                     <tr>
                         <th>#</th>
                         <th>اسم العميل</th>
-                        <th>هاتف 1</th>
-                        <th>رقم الأكونت</th>
-                        <th>رقم آخر بلاغ</th>
+                        <th>الهاتف</th>
                         <th>المنتج</th>
                         <th>السريال</th>
                         <th>العطل الحالي</th>
@@ -209,7 +202,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-previous">
-                    <tr><td colspan="11" class="empty">⏳ جاري التحميل...</td></tr>
+                    <tr><td colspan="9" class="empty">⏳ جاري التحميل...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -217,7 +210,6 @@
 </div>
 
 <script>
-    // ============ إعدادات Supabase ============
     const SUPABASE_URL = 'https://fqxwhsammdpdhfsiomxo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeHdoc2FtbWRwZGhmc2lvbXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwNzExODgsImV4cCI6MjEwNTY0NzE4OH0.eJhquiOyvB7yImJbaUgkhorgnhUpViSfbM8zmc2icq0';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -231,10 +223,8 @@
 
         if (error) {
             console.error(error);
-            document.getElementById('table-new').innerHTML =
-                '<tr><td colspan="13" class="empty">خطأ في الاتصال بالداتابيز</td></tr>';
-            document.getElementById('table-previous').innerHTML =
-                '<tr><td colspan="11" class="empty">خطأ في الاتصال بالداتابيز</td></tr>';
+            document.getElementById('table-new').innerHTML = '<tr><td colspan="9" class="empty">خطأ في الاتصال بالداتابيز</td></tr>';
+            document.getElementById('table-previous').innerHTML = '<tr><td colspan="9" class="empty">خطأ في الاتصال بالداتابيز</td></tr>';
             return;
         }
 
@@ -251,24 +241,24 @@
     function renderNewTable(data) {
         const tbody = document.getElementById('table-new');
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="13" class="empty"><span class="emoji">🎉</span>لا توجد بلاغات لعملاء جدد حالياً</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="9" class="empty"><span class="emoji">🎉</span>لا توجد بلاغات لعملاء جدد حالياً</td></tr>';
             return;
         }
         tbody.innerHTML = data.map((row, i) => `
             <tr id="row-${row.id}">
                 <td>${i + 1}</td>
-                <td><strong>${row.customer_name || '-'}</strong></td>
-                <td>${row.phone1 || '-'}</td>
-                <td>${row.phone2 || '-'}</td>
+                <td>
+                    <strong>${row.customer_name || '-'}</strong>
+                    <br>
+                    <small style="color:#64748b">${row.governorate || ''} ${row.city ? '- ' + row.city : ''}</small>
+                </td>
+                <td>${row.phone1 || '-'}${row.phone2 ? '<br><small style="color:#64748b">' + row.phone2 + '</small>' : ''}</td>
                 <td>${row.product || '-'}</td>
                 <td><small style="color:#64748b">${row.serial || '-'}</small></td>
-                <td>${row.governorate || '-'}</td>
-                <td>${row.city || '-'}</td>
-                <td>${row.address || '-'}</td>
+                <td>${row.address || row.booking_address || '-'}</td>
                 <td>${row.fault || '-'}</td>
-                <td>${row.booking_address || '-'}</td>
-                <td><span class="badge pending">⏳ لم يتم الحجز</span></td>
-                <td><button class="action-btn" onclick="bookTicket(${row.id}, this)">✓ تم الحجز</button></td>
+                <td><span class="badge pending">⏳ معلق</span></td>
+                <td><button class="action-btn" onclick="bookTicket(${row.id}, this)">✓ حجز</button></td>
             </tr>
         `).join('');
     }
@@ -276,22 +266,24 @@
     function renderPreviousTable(data) {
         const tbody = document.getElementById('table-previous');
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="11" class="empty"><span class="emoji">🎉</span>لا توجد بلاغات لعملاء سابقين حالياً</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="9" class="empty"><span class="emoji">🎉</span>لا توجد بلاغات لعملاء سابقين حالياً</td></tr>';
             return;
         }
         tbody.innerHTML = data.map((row, i) => `
             <tr id="row-${row.id}">
                 <td>${i + 1}</td>
-                <td><strong>${row.customer_name || '-'}</strong></td>
+                <td>
+                    <strong>${row.customer_name || '-'}</strong>
+                    <br>
+                    <small style="color:#c084fc">A/C: ${row.account_number || '-'}</small>
+                </td>
                 <td>${row.phone1 || '-'}</td>
-                <td><span class="badge previous">${row.account_number || '-'}</span></td>
-                <td>${row.last_ticket_number || '-'}</td>
                 <td>${row.product || '-'}</td>
                 <td><small style="color:#64748b">${row.serial || '-'}</small></td>
                 <td>${row.current_fault || '-'}</td>
                 <td>${row.booking_address || '-'}</td>
-                <td><span class="badge pending">⏳ لم يتم الحجز</span></td>
-                <td><button class="action-btn" onclick="bookTicket(${row.id}, this)">✓ تم الحجز</button></td>
+                <td><span class="badge pending">⏳ معلق</span></td>
+                <td><button class="action-btn" onclick="bookTicket(${row.id}, this)">✓ حجز</button></td>
             </tr>
         `).join('');
     }
@@ -309,7 +301,7 @@
 
         if (error) {
             btn.disabled = false;
-            btn.textContent = '✓ تم الحجز';
+            btn.textContent = '✓ حجز';
             showToast('خطأ: ' + error.message, 'error');
             return;
         }
