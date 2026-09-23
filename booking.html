@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نظام الحجز - تسجيل بلاغ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { background: #1e293b; border: 1px solid #334155; padding: 15px 25px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        header h1 { font-size: 20px; color: #fff; }
+        header a { background: #6366f1; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; }
+        .title-section { text-align: center; margin-bottom: 25px; }
+        .title-section h2 { font-size: 26px; color: #fff; margin-bottom: 5px; }
+        .title-section p { color: #94a3b8; font-size: 14px; }
+        .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .type-btn { background: #1e293b; border: 2px solid #334155; border-radius: 15px; padding: 20px; cursor: pointer; display: flex; align-items: center; gap: 15px; text-align: right; transition: 0.3s; color: #e2e8f0; font-family: 'Cairo', sans-serif; }
+        .type-btn.active-new { border-color: #6366f1; background: rgba(99,102,241,0.1); }
+        .type-btn.active-previous { border-color: #a855f7; background: rgba(168,85,247,0.1); }
+        .type-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .icon-new { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .icon-previous { background: rgba(168,85,247,0.2); color: #c084fc; }
+        .type-btn h3 { font-size: 17px; color: #fff; margin-bottom: 3px; }
+        .type-btn p { font-size: 12px; color: #94a3b8; }
+        .form-box { background: #1e293b; border: 1px solid #334155; border-radius: 18px; padding: 30px; display: none; }
+        .form-box.show { display: block; }
+        .form-header { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; margin-bottom: 25px; border-bottom: 1px solid #334155; }
+        .form-header .icon-box { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .form-header h3 { font-size: 19px; color: #fff; }
+        .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .field-full { grid-column: span 2; }
+        .field label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 8px; font-weight: 600; }
+        .field input, .field textarea { width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 12px 15px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 14px; }
+        .field input:focus, .field textarea:focus { outline: none; border-color: #6366f1; }
+        .field textarea { resize: vertical; min-height: 80px; }
+        .submit-btn { width: 100%; margin-top: 25px; padding: 15px; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; border-radius: 12px; font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .submit-btn:disabled { opacity: 0.5; cursor: wait; }
+        .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; z-index: 999; }
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        @media (max-width: 700px) { .type-grid, .fields-grid { grid-template-columns: 1fr; } .field-full { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div><h1>📋 نظام الحجز</h1></div>
+        <a href="dashboard.html">لوحة المتابعة →</a>
+    </header>
+
+    <div class="title-section">
+        <h2>تسجيل بلاغ جديد</h2>
+        <p>اختر نوع العميل أولاً</p>
+    </div>
+
+    <div class="type-grid">
+        <button type="button" class="type-btn" id="btn-new" onclick="selectType('new')">
+            <div class="type-icon icon-new">➕</div>
+            <div><h3>عميل جديد</h3><p>تسجيل بيانات جديدة</p></div>
+        </button>
+        <button type="button" class="type-btn" id="btn-previous" onclick="selectType('previous')">
+            <div class="type-icon icon-previous">👤</div>
+            <div><h3>عميل سابق</h3><p>لديه حساب سابق</p></div>
+        </button>
+    </div>
+
+    <div class="form-box" id="formBox">
+        <div class="form-header">
+            <div class="icon-box" id="formIcon"></div>
+            <h3 id="formTitle"></h3>
+        </div>
+
+        <div id="fields-new" style="display:none;">
+            <div class="fields-grid">
+                <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="customer_name" placeholder="أحمد محمد علي"></div>
+                <div class="field"><label>رقم الهاتف 1 *</label><input type="text" id="phone1" placeholder="01xxxxxxxxx"></div>
+                <div class="field"><label>رقم الهاتف 2</label><input type="text" id="phone2" placeholder="01xxxxxxxxx"></div>
+                <div class="field"><label>السريال</label><input type="text" id="serial" placeholder="SN-XXXXXX"></div>
+                <div class="field"><label>المنتج</label><input type="text" id="product" placeholder="اسم المنتج"></div>
+                <div class="field"><label>المحافظة</label><input type="text" id="governorate" placeholder="القاهرة"></div>
+                <div class="field"><label>المدينة</label><input type="text" id="city" placeholder="مدينة نصر"></div>
+                <div class="field"><label>العنوان</label><input type="text" id="address" placeholder="الشارع ورقم العمارة"></div>
+                <div class="field field-full"><label>العطل</label><textarea id="fault" placeholder="وصف العطل"></textarea></div>
+                <div class="field field-full"><label>العنوان المطلوب الحجز عليه</label><input type="text" id="booking_address" placeholder="عنوان الزيارة"></div>
+            </div>
+        </div>
+
+        <div id="fields-previous" style="display:none;">
+            <div class="fields-grid">
+                <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="p_customer_name" placeholder="أحمد محمد علي"></div>
+                <div class="field"><label>رقم الهاتف 1 *</label><input type="text" id="p_phone1" placeholder="01xxxxxxxxx"></div>
+                <div class="field"><label>رقم الأكونت *</label><input type="text" id="p_account_number" placeholder="ACC-XXXXX"></div>
+                <div class="field"><label>رقم آخر بلاغ</label><input type="text" id="p_last_ticket" placeholder="TKT-XXXXX"></div>
+                <div class="field"><label>المنتج</label><input type="text" id="p_product" placeholder="اسم المنتج"></div>
+                <div class="field"><label>السريال</label><input type="text" id="p_serial" placeholder="SN-XXXXXX"></div>
+                <div class="field field-full"><label>العطل الحالي *</label><textarea id="p_current_fault" placeholder="وصف العطل الحالي"></textarea></div>
+                <div class="field field-full"><label>العنوان المطلوب الحجز عليه</label><input type="text" id="p_booking_address" placeholder="عنوان الزيارة"></div>
+            </div>
+        </div>
+
+        <button type="button" class="submit-btn" id="submitBtn" onclick="saveData()">💾 حفظ البيانات</button>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://fqxwhsammdpdhfsiomxo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeHdoc2FtbWRwZGhmc2lvbXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwNzExODgsImV4cCI6MjEwNTY0NzE4OH0.eJhquiOyvB7yImJbaUgkhorgnhUpViSfbM8zmc2icq0';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentType = null;
+
+    function selectType(type) {
+        currentType = type;
+        document.getElementById('btn-new').className = 'type-btn';
+        document.getElementById('btn-previous').className = 'type-btn';
+
+        if (type === 'new') {
+            document.getElementById('btn-new').className = 'type-btn active-new';
+            document.getElementById('formIcon').className = 'icon-box icon-new';
+            document.getElementById('formIcon').textContent = '➕';
+            document.getElementById('formTitle').textContent = 'بيانات عميل جديد';
+            document.getElementById('fields-new').style.display = 'block';
+            document.getElementById('fields-previous').style.display = 'none';
+        } else {
+            document.getElementById('btn-previous').className = 'type-btn active-previous';
+            document.getElementById('formIcon').className = 'icon-box icon-previous';
+            document.getElementById('formIcon').textContent = '👤';
+            document.getElementById('formTitle').textContent = 'بيانات عميل سابق';
+            document.getElementById('fields-new').style.display = 'none';
+            document.getElementById('fields-previous').style.display = 'block';
+        }
+        document.getElementById('formBox').classList.add('show');
+    }
+
+    function showToast(msg, type) {
+        if (!type) type = 'success';
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function() { t.remove(); }, 3000);
+    }
+
+    async function saveData() {
+        if (!currentType) { showToast('اختر نوع العميل أولاً', 'error'); return; }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ جاري الحفظ...';
+
+        let data = { status: 'pending', is_previous: currentType === 'previous' };
+
+        if (currentType === 'new') {
+            const name = document.getElementById('customer_name').value.trim();
+            const phone = document.getElementById('phone1').value.trim();
+            if (!name || !phone) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('الاسم والهاتف مطلوبان', 'error');
+                return;
+            }
+            data.customer_name = name;
+            data.phone1 = phone;
+            data.phone2 = document.getElementById('phone2').value;
+            data.serial = document.getElementById('serial').value;
+            data.product = document.getElementById('product').value;
+            data.fault = document.getElementById('fault').value;
+            data.governorate = document.getElementById('governorate').value;
+            data.city = document.getElementById('city').value;
+            data.address = document.getElementById('address').value;
+            data.booking_address = document.getElementById('booking_address').value;
+        } else {
+            const name = document.getElementById('p_customer_name').value.trim();
+            const phone = document.getElementById('p_phone1').value.trim();
+            const acc = document.getElementById('p_account_number').value.trim();
+            if (!name || !phone || !acc) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('الاسم والهاتف ورقم الأكونت مطلوبين', 'error');
+                return;
+            }
+            data.customer_name = name;
+            data.phone1 = phone;
+            data.account_number = acc;
+            data.last_ticket_number = document.getElementById('p_last_ticket').value;
+            data.product = document.getElementById('p_product').value;
+            data.serial = document.getElementById('p_serial').value;
+            data.current_fault = document.getElementById('p_current_fault').value;
+            data.booking_address = document.getElementById('p_booking_address').value;
+        }
+
+        const result = await supabaseClient.from('tickets').insert([data]);
+        const error = result.error;
+
+        btn.disabled = false;
+        btn.textContent = '💾 حفظ البيانات';
+
+        if (error) {
+            console.error(error);
+            showToast('خطأ: ' + error.message, 'error');
+        } else {
+            showToast('✅ تم الحفظ بنجاح', 'success');
+            setTimeout(function() { location.reload(); }, 1200);
+        }
+    }
+</script>
+</body>
+</html>
