@@ -149,7 +149,7 @@
                 <span>تحديث تلقائي كل 5 ثواني</span>
             </div>
         </div>
-        <a href="booking.html">+ تسجيل بلاغ جديد</a>
+        <a href="#" onclick="goToBooking(event)">+ تسجيل بلاغ جديد</a>
     </header>
 
     <div class="tabs">
@@ -339,6 +339,17 @@
         t.textContent = msg;
         document.body.appendChild(t);
         setTimeout(() => t.remove(), 2500);
+    }
+
+    // حماية صفحة تسجيل البلاغ بكلمة مرور
+    function goToBooking(event) {
+        event.preventDefault();
+        const password = prompt('أدخل كلمة المرور للدخول إلى صفحة تسجيل البلاغ:');
+        if (password === '19012') {
+            window.location.href = 'booking.html';
+        } else if (password !== null) {
+            showToast('❌ كلمة المرور غير صحيحة', 'error');
+        }
     }
 
     fetchData();

@@ -29,8 +29,8 @@
         .form-header { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; margin-bottom: 25px; border-bottom: 1px solid #334155; }
         .form-header .icon-box { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
         .form-header h3 { font-size: 19px; color: #fff; }
-        .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-        .field-full { grid-column: span 2; }
+        .fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+        .field-full { grid-column: span 3; }
         .field label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 8px; font-weight: 600; }
         .field input, .field textarea { width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 12px 15px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 14px; }
         .field input:focus, .field textarea:focus { outline: none; border-color: #6366f1; }
@@ -40,7 +40,7 @@
         .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; z-index: 999; }
         .toast.success { background: #10b981; }
         .toast.error { background: #ef4444; }
-        @media (max-width: 700px) { .type-grid, .fields-grid { grid-template-columns: 1fr; } .field-full { grid-column: span 1; } }
+        @media (max-width: 700px) { .type-grid { grid-template-columns: 1fr; } .fields-grid { grid-template-columns: 1fr; } .field-full { grid-column: span 1; } }
     </style>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <div class="container">
     <header>
         <div><h1>📋 نظام الحجز</h1></div>
-        <a href="dashboard.html">لوحة المتابعة →</a>
+        <a href="#" onclick="goToDashboard(event)">لوحة المتابعة →</a>
     </header>
 
     <div class="title-section">
@@ -59,11 +59,11 @@
     <div class="type-grid">
         <button type="button" class="type-btn" id="btn-new" onclick="selectType('new')">
             <div class="type-icon icon-new">➕</div>
-            <div><h3>عميل جديد</h3><p>تسجيل بيانات جديدة</p></div>
+            <div><h3>حجز بلاغ لعميل جديد</h3><p>تسجيل بيانات جديدة</p></div>
         </button>
         <button type="button" class="type-btn" id="btn-previous" onclick="selectType('previous')">
             <div class="type-icon icon-previous">👤</div>
-            <div><h3>عميل سابق</h3><p>لديه حساب سابق</p></div>
+            <div><h3>حجز بلاغ لعميل سابق</h3><p>لديه حساب سابق</p></div>
         </button>
     </div>
 
@@ -73,21 +73,22 @@
             <h3 id="formTitle"></h3>
         </div>
 
+        <!-- عميل جديد -->
         <div id="fields-new" style="display:none;">
             <div class="fields-grid">
                 <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="customer_name" placeholder="أحمد محمد علي"></div>
                 <div class="field"><label>رقم الهاتف 1 *</label><input type="text" id="phone1" placeholder="01xxxxxxxxx"></div>
                 <div class="field"><label>رقم الهاتف 2</label><input type="text" id="phone2" placeholder="01xxxxxxxxx"></div>
-                <div class="field"><label>السريال</label><input type="text" id="serial" placeholder="SN-XXXXXX"></div>
-                <div class="field"><label>المنتج</label><input type="text" id="product" placeholder="اسم المنتج"></div>
                 <div class="field"><label>المحافظة</label><input type="text" id="governorate" placeholder="القاهرة"></div>
                 <div class="field"><label>المدينة</label><input type="text" id="city" placeholder="مدينة نصر"></div>
                 <div class="field"><label>العنوان</label><input type="text" id="address" placeholder="الشارع ورقم العمارة"></div>
-                <div class="field field-full"><label>العطل</label><textarea id="fault" placeholder="وصف العطل"></textarea></div>
-                <div class="field field-full"><label>العنوان المطلوب الحجز عليه</label><input type="text" id="booking_address" placeholder="عنوان الزيارة"></div>
+                <div class="field"><label>المنتج</label><input type="text" id="product" placeholder="اسم المنتج"></div>
+                <div class="field"><label>السريال</label><input type="text" id="serial" placeholder="SN-XXXXXX"></div>
+                <div class="field"><label>العطل</label><textarea id="fault" placeholder="وصف العطل"></textarea></div>
             </div>
         </div>
 
+        <!-- عميل سابق -->
         <div id="fields-previous" style="display:none;">
             <div class="fields-grid">
                 <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="p_customer_name" placeholder="أحمد محمد علي"></div>
@@ -144,6 +145,17 @@
         setTimeout(function() { t.remove(); }, 3000);
     }
 
+    // حماية لوحة المتابعة بكلمة مرور
+    function goToDashboard(event) {
+        event.preventDefault();
+        const password = prompt('أدخل كلمة المرور للدخول إلى لوحة المتابعة:');
+        if (password === '19012') {
+            window.location.href = 'dashboard.html';
+        } else if (password !== null) {
+            showToast('❌ كلمة المرور غير صحيحة', 'error');
+        }
+    }
+
     async function saveData() {
         if (!currentType) { showToast('اختر نوع العميل أولاً', 'error'); return; }
 
@@ -170,7 +182,7 @@
             data.governorate = document.getElementById('governorate').value;
             data.city = document.getElementById('city').value;
             data.address = document.getElementById('address').value;
-            data.booking_address = document.getElementById('booking_address').value;
+            // تم إزالة booking_address من العميل الجديد
         } else {
             const name = document.getElementById('p_customer_name').value.trim();
             const phone = document.getElementById('p_phone1').value.trim();
