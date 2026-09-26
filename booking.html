@@ -47,6 +47,36 @@
         .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; z-index: 999; }
         .toast.success { background: #10b981; }
         .toast.error { background: #ef4444; }
+
+        /* ============ Searchable Dropdown ============ */
+        .sd-wrap { position: relative; }
+        .sd-input {
+            width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+            padding: 12px 15px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 14px;
+            cursor: pointer;
+        }
+        .sd-input:focus { outline: none; border-color: #6366f1; }
+        .sd-input::placeholder { color: #64748b; }
+        .sd-input:disabled { opacity: 0.6; cursor: not-allowed; }
+        .sd-arrow {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            pointer-events: none; color: #64748b; font-size: 12px;
+        }
+        .sd-list {
+            position: absolute; top: calc(100% + 5px); right: 0; left: 0;
+            background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+            max-height: 240px; overflow-y: auto; z-index: 100;
+            display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .sd-list.open { display: block; }
+        .sd-item {
+            padding: 10px 15px; cursor: pointer; font-size: 14px;
+            border-bottom: 1px solid #334155;
+        }
+        .sd-item:last-child { border-bottom: none; }
+        .sd-item:hover, .sd-item.active { background: #6366f1; color: #fff; }
+        .sd-empty { padding: 15px; text-align: center; color: #64748b; font-size: 13px; }
+
         @media (max-width: 700px) { .type-grid { grid-template-columns: 1fr; } .fields-grid { grid-template-columns: 1fr; } .field-full { grid-column: span 1; } }
     </style>
 </head>
@@ -84,7 +114,7 @@
         <div id="fields-new" style="display:none;">
             <div class="fields-grid">
 
-                <!-- ✅ نوع البلاغ - أول حقل -->
+                <!-- ✅ نوع البلاغ -->
                 <div class="field">
                     <label>نوع البلاغ</label>
                     <select id="report_type">
@@ -96,7 +126,7 @@
 
                 <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="customer_name" placeholder="أحمد محمد علي"></div>
 
-                <!-- ✅ هاتف 1 (11 رقم) -->
+                <!-- ✅ هاتف 1 -->
                 <div class="field">
                     <label>رقم الهاتف 1 *</label>
                     <input type="tel" id="phone1" placeholder="01xxxxxxxxx"
@@ -105,7 +135,7 @@
                     <small class="hint" id="phone1Hint">11 رقم بالظبط (مثال: 01012345678)</small>
                 </div>
 
-                <!-- ✅ هاتف 2 (اختياري - لو اتكتب لازم 11 رقم) -->
+                <!-- ✅ هاتف 2 -->
                 <div class="field">
                     <label>رقم الهاتف 2</label>
                     <input type="tel" id="phone2" placeholder="01xxxxxxxxx"
@@ -114,51 +144,39 @@
                     <small class="hint" id="phone2Hint">اختياري - لو اتكتب لازم 11 رقم</small>
                 </div>
 
-                <!-- المحافظة -->
+                <!-- ✅ المحافظة (Searchable) -->
                 <div class="field">
                     <label>المحافظة</label>
-                    <select id="governorate">
-                        <option value="">-- اختر المحافظة --</option>
-                    </select>
+                    <div class="sd-wrap" data-sd="governorate">
+                        <input type="text" class="sd-input" id="governorate_sd" placeholder="-- ابحث واختر المحافظة --" autocomplete="off">
+                        <span class="sd-arrow">▼</span>
+                        <input type="hidden" id="governorate">
+                        <div class="sd-list" id="governorate_list"></div>
+                    </div>
                 </div>
 
-                <!-- المدينة -->
+                <!-- ✅ المدينة (Searchable) -->
                 <div class="field">
                     <label>المدينة</label>
-                    <select id="city" disabled>
-                        <option value="">-- اختر المحافظة أولاً --</option>
-                    </select>
+                    <div class="sd-wrap" data-sd="city">
+                        <input type="text" class="sd-input" id="city_sd" placeholder="-- اختر المحافظة أولاً --" autocomplete="off" disabled>
+                        <span class="sd-arrow">▼</span>
+                        <input type="hidden" id="city">
+                        <div class="sd-list" id="city_list"></div>
+                    </div>
                 </div>
 
                 <div class="field"><label>العنوان</label><input type="text" id="address" placeholder="الشارع ورقم العمارة"></div>
 
-                <!-- ✅ قائمة المنتجات -->
+                <!-- ✅ المنتج (Searchable) -->
                 <div class="field">
                     <label>المنتج</label>
-                    <select id="product" onchange="toggleOtherProduct(this, 'product_other')">
-                        <option value="">-- اختر المنتج --</option>
-                        <option value="التكيف">التكيف</option>
-                        <option value="الثلاجة">الثلاجة</option>
-                        <option value="الغسالة">الغسالة</option>
-                        <option value="البوتجاز">البوتجاز</option>
-                        <option value="الشاشة">الشاشة</option>
-                        <option value="الديب فريزر">الديب فريزر</option>
-                        <option value="مبرد المياه">مبرد المياه</option>
-                        <option value="السخان الغاز">السخان الغاز</option>
-                        <option value="السخان الكهرباء">السخان الكهرباء</option>
-                        <option value="المروحة">المروحة</option>
-                        <option value="المكنسة">المكنسة</option>
-                        <option value="الشفاط">الشفاط</option>
-                        <option value="الدفاية">الدفاية</option>
-                        <option value="المكواة">المكواة</option>
-                        <option value="فلتر المياه">فلتر المياه</option>
-                        <option value="محضر الطعام">محضر الطعام</option>
-                        <option value="شفاط حائطي">شفاط حائطي</option>
-                        <option value="فرن بلت ان">فرن بلت ان</option>
-                        <option value="مسطح بلت ان">مسطح بلت ان</option>
-                        <option value="التكييف الصحراوي">التكييف الصحراوي</option>
-                        <option value="اخري">اخري</option>
-                    </select>
+                    <div class="sd-wrap" data-sd="product">
+                        <input type="text" class="sd-input" id="product_sd" placeholder="-- ابحث واختر المنتج --" autocomplete="off">
+                        <span class="sd-arrow">▼</span>
+                        <input type="hidden" id="product">
+                        <div class="sd-list" id="product_list"></div>
+                    </div>
                 </div>
 
                 <!-- ✅ حقل إضافي يظهر لو اختار "اخري" -->
@@ -177,7 +195,7 @@
         <div id="fields-previous" style="display:none;">
             <div class="fields-grid">
 
-                <!-- ✅ نوع البلاغ - أول حقل -->
+                <!-- ✅ نوع البلاغ -->
                 <div class="field">
                     <label>نوع البلاغ</label>
                     <select id="p_report_type">
@@ -189,7 +207,7 @@
 
                 <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="p_customer_name" placeholder="أحمد محمد علي"></div>
 
-                <!-- ✅ هاتف 1 (11 رقم) -->
+                <!-- ✅ هاتف 1 -->
                 <div class="field">
                     <label>رقم الهاتف 1 *</label>
                     <input type="tel" id="p_phone1" placeholder="01xxxxxxxxx"
@@ -198,36 +216,18 @@
                     <small class="hint" id="p_phone1Hint">11 رقم بالظبط (مثال: 01012345678)</small>
                 </div>
 
-                <div class="field"><label>رقم كونتكت نمبر  *</label><input type="text" id="p_account_number" placeholder="ACC-XXXXX"></div>
+                <div class="field"><label>رقم كونتكت نمبر *</label><input type="text" id="p_account_number" placeholder="ACC-XXXXX"></div>
                 <div class="field"><label>رقم آخر بلاغ</label><input type="text" id="p_last_ticket" placeholder="TKT-XXXXX"></div>
 
-                <!-- ✅ قائمة المنتجات -->
+                <!-- ✅ المنتج (Searchable) -->
                 <div class="field">
                     <label>المنتج</label>
-                    <select id="p_product" onchange="toggleOtherProduct(this, 'p_product_other')">
-                        <option value="">-- اختر المنتج --</option>
-                        <option value="التكيف">التكيف</option>
-                        <option value="الثلاجة">الثلاجة</option>
-                        <option value="الغسالة">الغسالة</option>
-                        <option value="البوتجاز">البوتجاز</option>
-                        <option value="الشاشة">الشاشة</option>
-                        <option value="الديب فريزر">الديب فريزر</option>
-                        <option value="مبرد المياه">مبرد المياه</option>
-                        <option value="السخان الغاز">السخان الغاز</option>
-                        <option value="السخان الكهرباء">السخان الكهرباء</option>
-                        <option value="المروحة">المروحة</option>
-                        <option value="المكنسة">المكنسة</option>
-                        <option value="الشفاط">الشفاط</option>
-                        <option value="الدفاية">الدفاية</option>
-                        <option value="المكواة">المكواة</option>
-                        <option value="فلتر المياه">فلتر المياه</option>
-                        <option value="محضر الطعام">محضر الطعام</option>
-                        <option value="شفاط حائطي">شفاط حائطي</option>
-                        <option value="فرن بلت ان">فرن بلت ان</option>
-                        <option value="مسطح بلت ان">مسطح بلت ان</option>
-                        <option value="التكييف الصحراوي">التكييف الصحراوي</option>
-                        <option value="اخري">اخري</option>
-                    </select>
+                    <div class="sd-wrap" data-sd="p_product">
+                        <input type="text" class="sd-input" id="p_product_sd" placeholder="-- ابحث واختر المنتج --" autocomplete="off">
+                        <span class="sd-arrow">▼</span>
+                        <input type="hidden" id="p_product">
+                        <div class="sd-list" id="p_product_list"></div>
+                    </div>
                 </div>
 
                 <!-- ✅ حقل إضافي يظهر لو اختار "اخري" -->
@@ -260,80 +260,169 @@
     function validatePhone(input, hintId, isOptional) {
         const hintEl = document.getElementById(hintId);
         const value = input.value.trim();
-
-        // فلترة: أرقام إنجليزية + عربية فقط
         const cleaned = value.replace(/[^\d٠-٩]/g, '');
         if (cleaned !== value) input.value = cleaned;
 
-        // لو فاضي
         if (cleaned === '') {
             input.classList.remove('invalid', 'valid');
             if (hintEl) {
                 hintEl.classList.remove('error', 'success');
-                if (isOptional) {
-                    hintEl.textContent = 'اختياري - لو اتكتب لازم 11 رقم';
-                } else {
-                    hintEl.textContent = '11 رقم بالظبط (مثال: 01012345678)';
-                }
+                hintEl.textContent = isOptional
+                    ? 'اختياري - لو اتكتب لازم 11 رقم'
+                    : '11 رقم بالظبط (مثال: 01012345678)';
             }
             return false;
         }
 
-        // لازم أرقام إنجليزية بس (نمنع العربي)
         if (/[٠-٩]/.test(cleaned)) {
-            input.classList.add('invalid');
-            input.classList.remove('valid');
+            input.classList.add('invalid'); input.classList.remove('valid');
             if (hintEl) {
-                hintEl.classList.add('error');
-                hintEl.classList.remove('success');
+                hintEl.classList.add('error'); hintEl.classList.remove('success');
                 hintEl.textContent = '❌ من فضلك اكتب الأرقام بالإنجليزية (0-9)';
             }
             return false;
         }
 
-        // لازم 11 رقم
         if (cleaned.length !== 11) {
-            input.classList.add('invalid');
-            input.classList.remove('valid');
+            input.classList.add('invalid'); input.classList.remove('valid');
             if (hintEl) {
-                hintEl.classList.add('error');
-                hintEl.classList.remove('success');
+                hintEl.classList.add('error'); hintEl.classList.remove('success');
                 hintEl.textContent = `❌ لازم 11 رقم — انت كتبت ${cleaned.length} رقم`;
             }
             return false;
         }
 
-        // ✅ صح
-        input.classList.remove('invalid');
-        input.classList.add('valid');
+        input.classList.remove('invalid'); input.classList.add('valid');
         if (hintEl) {
-            hintEl.classList.remove('error');
-            hintEl.classList.add('success');
+            hintEl.classList.remove('error'); hintEl.classList.add('success');
             hintEl.textContent = '✅ رقم صحيح';
         }
         return true;
     }
 
     /* =========================================================
-       ✅ إظهار/إخفاء حقل "أخرى" حسب اختيار المنتج
+       ✅ Searchable Dropdown (SD) Helper
        ========================================================= */
-    function toggleOtherProduct(selectEl, otherInputId) {
-        const otherInput = document.getElementById(otherInputId);
-        const wrapper = otherInput.closest('.field');
+    const SD = {
+        /**
+         * إنشاء dropdown قابل للبحث
+         * @param {string} key         - اسم الحقل (مفتاح) زي 'governorate'
+         * @param {Array}  items       - مصفوفة العناصر [{value, label}] أو مصفوفة نصوص
+         * @param {Function} onChange  - دالة تُنفذ عند الاختيار
+         * @param {string} placeholder - النص التوضيحي
+         */
+        init: function(key, items, onChange, placeholder) {
+            const inputEl = document.getElementById(key + '_sd');
+            const hiddenEl = document.getElementById(key);
+            const listEl = document.getElementById(key + '_list');
 
-        if (selectEl.value === 'اخري') {
-            wrapper.style.display = 'block';
-            otherInput.required = true;
-            otherInput.focus();
-        } else {
-            wrapper.style.display = 'none';
-            otherInput.required = false;
-            otherInput.value = '';
+            // تنظيف أي مستمعين سابقين (بإعادة إنشاء العناصر)
+            inputEl.value = '';
+            hiddenEl.value = '';
+            listEl.innerHTML = '';
+            listEl.classList.remove('open');
+            inputEl.disabled = items.length === 0;
+            inputEl.placeholder = placeholder || '-- ابحث واختر --';
+
+            // فتح القائمة عند التركيز أو الكتابة
+            inputEl.onfocus = function() { SD.open(key); };
+            inputEl.oninput = function() { SD.render(key, items, onChange); SD.open(key); };
+            inputEl.onkeydown = function(e) {
+                if (e.key === 'Escape') SD.close(key);
+            };
+
+            // إغلاق عند الضغط خارج
+            document.addEventListener('click', function(e) {
+                const wrap = inputEl.closest('.sd-wrap');
+                if (wrap && !wrap.contains(e.target)) SD.close(key);
+            });
+
+            // خزن البيانات في عنصر الـ wrap
+            inputEl._sdItems = items;
+            inputEl._sdOnChange = onChange;
+            inputEl._sdPlaceholder = placeholder || '-- ابحث واختر --';
+        },
+
+        open: function(key) {
+            const listEl = document.getElementById(key + '_list');
+            const inputEl = document.getElementById(key + '_sd');
+            // اقفل كل القوائم التانية الأول
+            document.querySelectorAll('.sd-list.open').forEach(function(l) {
+                if (l.id !== key + '_list') l.classList.remove('open');
+            });
+            SD.render(key, inputEl._sdItems, inputEl._sdOnChange);
+            listEl.classList.add('open');
+        },
+
+        close: function(key) {
+            const listEl = document.getElementById(key + '_list');
+            listEl.classList.remove('open');
+            // لو المستخدم كتب نص مش موجود في القائمة، رجع القيمة القديمة
+            const inputEl = document.getElementById(key + '_sd');
+            const hiddenEl = document.getElementById(key);
+            if (hiddenEl.value) {
+                // لو فيه اختيار سابق، رجع اعرض النص المختار
+                const match = (inputEl._sdItems || []).find(function(it) {
+                    return (it.value !== undefined ? it.value : it) === hiddenEl.value;
+                });
+                if (match) {
+                    inputEl.value = match.label !== undefined ? match.label : match;
+                }
+            } else {
+                // مفيش اختيار، فضّي الحقل
+                inputEl.value = '';
+            }
+        },
+
+        render: function(key, items, onChange) {
+            const inputEl = document.getElementById(key + '_sd');
+            const listEl = document.getElementById(key + '_list');
+            const query = (inputEl.value || '').trim().toLowerCase();
+
+            const filtered = items.filter(function(it) {
+                const label = it.label !== undefined ? it.label : it;
+                return label.toLowerCase().indexOf(query) !== -1;
+            });
+
+            listEl.innerHTML = '';
+
+            if (filtered.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'sd-empty';
+                empty.textContent = 'لا توجد نتائج';
+                listEl.appendChild(empty);
+                return;
+            }
+
+            filtered.forEach(function(it) {
+                const label = it.label !== undefined ? it.label : it;
+                const value = it.value !== undefined ? it.value : it;
+                const div = document.createElement('div');
+                div.className = 'sd-item';
+                div.textContent = label;
+                div.onmousedown = function(e) {
+                    e.preventDefault(); // يمنع blur
+                    inputEl.value = label;
+                    document.getElementById(key).value = value;
+                    listEl.classList.remove('open');
+                    if (typeof onChange === 'function') onChange(value, label);
+                };
+                listEl.appendChild(div);
+            });
+        },
+
+        /** إعادة تعيين القائمة لعنصر (يستخدم مع المدينة) */
+        reset: function(key, placeholder) {
+            const inputEl = document.getElementById(key + '_sd');
+            inputEl.value = '';
+            document.getElementById(key).value = '';
+            inputEl.disabled = true;
+            inputEl.placeholder = placeholder || '-- اختر أولاً --';
         }
-    }
+    };
 
     /* =========================================================
-       قائمة المحافظات والمدن (نفس اللي في IBC.html - كاملة)
+       قائمة المحافظات والمدن
        ========================================================= */
     const rawCityGov = `
 كلابشة	اسوان
@@ -896,7 +985,14 @@
 العلمين	مرسى مطروح
 `;
 
-    /* بناء كائن المحافظات والمدن من النص */
+    /* قائمة المنتجات */
+    const PRODUCTS = [
+        'التكيف','الثلاجة','الغسالة','البوتجاز','الشاشة','الديب فريزر',
+        'مبرد المياه','السخان الغاز','السخان الكهرباء','المروحة','المكنسة',
+        'الشفاط','الدفاية','المكواة','فلتر المياه','محضر الطعام','شفاط حائطي',
+        'فرن بلت ان','مسطح بلت ان','التكييف الصحراوي','اخري'
+    ];
+
     function buildEgyptData(raw){
         const lines = raw.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
         const data = {};
@@ -921,56 +1017,49 @@
     }
 
     const egyptData = buildEgyptData(rawCityGov);
-
-    /* ملء قائمة المحافظات */
-    function populateGovernorates(){
-        const govSelect = document.getElementById('governorate');
-        const citySelect = document.getElementById('city');
-        const govs = Object.keys(egyptData).sort(function(a,b){ return a.localeCompare(b,'ar'); });
-        govSelect.innerHTML = '<option value="">-- اختر المحافظة --</option>';
-        govs.forEach(function(g){
-            const opt = document.createElement('option');
-            opt.value = g;
-            opt.textContent = g;
-            govSelect.appendChild(opt);
-        });
-        citySelect.innerHTML = '<option value="">-- اختر المحافظة أولاً --</option>';
-        citySelect.disabled = true;
-    }
-
-    /* ملء قائمة المدن حسب المحافظة المختارة */
-    function populateCitiesFor(gov){
-        const citySelect = document.getElementById('city');
-        citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
-        const cities = egyptData[gov] || [];
-        cities.forEach(function(c){
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.textContent = c;
-            citySelect.appendChild(opt);
-        });
-        citySelect.disabled = cities.length === 0;
-    }
-
-    /* تشغيل عند تحميل الصفحة */
-    document.addEventListener('DOMContentLoaded', function(){
-        populateGovernorates();
-        document.getElementById('governorate').addEventListener('change', function(){
-            const gov = this.value;
-            if(gov){
-                populateCitiesFor(gov);
-            } else {
-                const citySelect = document.getElementById('city');
-                citySelect.innerHTML = '<option value="">-- اختر المحافظة أولاً --</option>';
-                citySelect.disabled = true;
-            }
-        });
-    });
+    const govList = Object.keys(egyptData).sort(function(a,b){ return a.localeCompare(b,'ar'); });
 
     /* =========================================================
-       باقي المنطق الأصلي
+       تهيئة الحقول عند تحميل الصفحة
        ========================================================= */
+    document.addEventListener('DOMContentLoaded', function() {
 
+        /* --- عميل جديد: المحافظة --- */
+        SD.init('governorate', govList, function(value) {
+            // لما يختار محافظة، نحدث قائمة المدن
+            const cities = egyptData[value] || [];
+            SD.init('city', cities, null, '-- ابحث واختر المدينة --');
+        }, '-- ابحث واختر المحافظة --');
+
+        /* --- عميل جديد: المنتج --- */
+        SD.init('product', PRODUCTS, function(value) {
+            toggleOtherProductById(value, 'product_other');
+        }, '-- ابحث واختر المنتج --');
+
+        /* --- عميل سابق: المنتج --- */
+        SD.init('p_product', PRODUCTS, function(value) {
+            toggleOtherProductById(value, 'p_product_other');
+        }, '-- ابحث واختر المنتج --');
+    });
+
+    /* ✅ إظهار/إخفاء حقل "أخرى" حسب القيمة المختارة */
+    function toggleOtherProductById(value, otherInputId) {
+        const otherInput = document.getElementById(otherInputId);
+        const wrapper = otherInput.closest('.field');
+        if (value === 'اخري') {
+            wrapper.style.display = 'block';
+            otherInput.required = true;
+            otherInput.focus();
+        } else {
+            wrapper.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
+    }
+
+    /* =========================================================
+       اختيار نوع العميل
+       ========================================================= */
     function selectType(type) {
         currentType = type;
         document.getElementById('btn-new').className = 'type-btn';
@@ -1013,12 +1102,14 @@
         }
     }
 
-    /* ✅ دالة التحقق من صحة رقم الهاتف قبل الحفظ */
     function isValidPhone(value) {
         const cleaned = (value || '').trim();
-        return /^\d{11}$/.test(cleaned); // 11 رقم بالظبط (أرقام إنجليزية)
+        return /^\d{11}$/.test(cleaned);
     }
 
+    /* =========================================================
+       حفظ البيانات
+       ========================================================= */
     async function saveData() {
         if (!currentType) { showToast('اختر نوع العميل أولاً', 'error'); return; }
 
@@ -1033,14 +1124,12 @@
             const phone1 = document.getElementById('phone1').value.trim();
             const phone2 = document.getElementById('phone2').value.trim();
 
-            // ✅ التحقق من الاسم
             if (!name) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
                 showToast('اسم العميل مطلوب', 'error');
                 return;
             }
 
-            // ✅ التحقق من هاتف 1
             if (!phone1) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
                 showToast('رقم الهاتف 1 مطلوب', 'error');
@@ -1053,8 +1142,6 @@
                 document.getElementById('phone1').focus();
                 return;
             }
-
-            // ✅ التحقق من هاتف 2 (اختياري، بس لو مكتوب لازم 11 رقم)
             if (phone2 && !isValidPhone(phone2)) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
                 showToast('❌ رقم الهاتف 2 لازم 11 رقم بالظبط (أو سيبه فاضي)', 'error');
@@ -1062,7 +1149,7 @@
                 return;
             }
 
-            // ✅ قراءة المنتج (سواء من القائمة أو من حقل "أخرى")
+            // ✅ المنتج (من القائمة أو من حقل "أخرى")
             let productValue = document.getElementById('product').value;
             if (productValue === 'اخري') {
                 const customProduct = document.getElementById('product_other').value.trim();
@@ -1090,14 +1177,11 @@
             const phone1 = document.getElementById('p_phone1').value.trim();
             const acc = document.getElementById('p_account_number').value.trim();
 
-            // ✅ التحقق من الاسم
             if (!name) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
                 showToast('اسم العميل مطلوب', 'error');
                 return;
             }
-
-            // ✅ التحقق من هاتف 1
             if (!phone1) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
                 showToast('رقم الهاتف 1 مطلوب', 'error');
@@ -1110,15 +1194,13 @@
                 document.getElementById('p_phone1').focus();
                 return;
             }
-
-            // ✅ التحقق من رقم الأكونت
             if (!acc) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
                 showToast('رقم الأكونت مطلوب', 'error');
                 return;
             }
 
-            // ✅ قراءة المنتج (سواء من القائمة أو من حقل "أخرى")
+            // ✅ المنتج (من القائمة أو من حقل "أخرى")
             let productValue = document.getElementById('p_product').value;
             if (productValue === 'اخري') {
                 const customProduct = document.getElementById('p_product_other').value.trim();
