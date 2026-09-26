@@ -37,6 +37,11 @@
         .field textarea { resize: vertical; min-height: 80px; }
         .field select { cursor: pointer; }
         .field select:disabled { opacity: 0.6; cursor: not-allowed; }
+        .field input.invalid { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+        .field input.valid { border-color: #10b981; }
+        .field .hint { display: block; font-size: 11px; color: #64748b; margin-top: 4px; }
+        .field .hint.error { color: #ef4444; }
+        .field .hint.success { color: #10b981; }
         .submit-btn { width: 100%; margin-top: 25px; padding: 15px; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; border-radius: 12px; font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
         .submit-btn:disabled { opacity: 0.5; cursor: wait; }
         .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; z-index: 999; }
@@ -79,7 +84,7 @@
         <div id="fields-new" style="display:none;">
             <div class="fields-grid">
 
-                <!-- ✅ نوع البلاغ - أول حقل تحت العنوان مباشرة -->
+                <!-- ✅ نوع البلاغ - أول حقل -->
                 <div class="field">
                     <label>نوع البلاغ</label>
                     <select id="report_type">
@@ -90,8 +95,24 @@
                 </div>
 
                 <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="customer_name" placeholder="أحمد محمد علي"></div>
-                <div class="field"><label>رقم الهاتف 1 *</label><input type="text" id="phone1" placeholder="01xxxxxxxxx"></div>
-                <div class="field"><label>رقم الهاتف 2</label><input type="text" id="phone2" placeholder="01xxxxxxxxx"></div>
+
+                <!-- ✅ هاتف 1 (11 رقم) -->
+                <div class="field">
+                    <label>رقم الهاتف 1 *</label>
+                    <input type="tel" id="phone1" placeholder="01xxxxxxxxx"
+                           maxlength="11" inputmode="numeric" pattern="[0-9]{11}"
+                           oninput="validatePhone(this, 'phone1Hint')">
+                    <small class="hint" id="phone1Hint">11 رقم بالظبط (مثال: 01012345678)</small>
+                </div>
+
+                <!-- ✅ هاتف 2 (اختياري - لو اتكتب لازم 11 رقم) -->
+                <div class="field">
+                    <label>رقم الهاتف 2</label>
+                    <input type="tel" id="phone2" placeholder="01xxxxxxxxx"
+                           maxlength="11" inputmode="numeric" pattern="[0-9]{11}"
+                           oninput="validatePhone(this, 'phone2Hint', true)">
+                    <small class="hint" id="phone2Hint">اختياري - لو اتكتب لازم 11 رقم</small>
+                </div>
 
                 <!-- المحافظة -->
                 <div class="field">
@@ -121,7 +142,7 @@
         <div id="fields-previous" style="display:none;">
             <div class="fields-grid">
 
-                <!-- ✅ نوع البلاغ - أول حقل تحت العنوان مباشرة -->
+                <!-- ✅ نوع البلاغ - أول حقل -->
                 <div class="field">
                     <label>نوع البلاغ</label>
                     <select id="p_report_type">
@@ -132,7 +153,16 @@
                 </div>
 
                 <div class="field"><label>اسم العميل الثلاثي *</label><input type="text" id="p_customer_name" placeholder="أحمد محمد علي"></div>
-                <div class="field"><label>رقم الهاتف 1 *</label><input type="text" id="p_phone1" placeholder="01xxxxxxxxx"></div>
+
+                <!-- ✅ هاتف 1 (11 رقم) -->
+                <div class="field">
+                    <label>رقم الهاتف 1 *</label>
+                    <input type="tel" id="p_phone1" placeholder="01xxxxxxxxx"
+                           maxlength="11" inputmode="numeric" pattern="[0-9]{11}"
+                           oninput="validatePhone(this, 'p_phone1Hint')">
+                    <small class="hint" id="p_phone1Hint">11 رقم بالظبط (مثال: 01012345678)</small>
+                </div>
+
                 <div class="field"><label>رقم كونتكت نمبر  *</label><input type="text" id="p_account_number" placeholder="ACC-XXXXX"></div>
                 <div class="field"><label>رقم آخر بلاغ</label><input type="text" id="p_last_ticket" placeholder="TKT-XXXXX"></div>
                 <div class="field"><label>المنتج</label><input type="text" id="p_product" placeholder="اسم المنتج"></div>
@@ -153,6 +183,66 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentType = null;
+
+    /* =========================================================
+       ✅ دالة التحقق من رقم الهاتف (11 رقم)
+       ========================================================= */
+    function validatePhone(input, hintId, isOptional) {
+        const hintEl = document.getElementById(hintId);
+        const value = input.value.trim();
+
+        // فلترة: أرقام إنجليزية + عربية فقط
+        const cleaned = value.replace(/[^\d٠-٩]/g, '');
+        if (cleaned !== value) input.value = cleaned;
+
+        // لو فاضي
+        if (cleaned === '') {
+            input.classList.remove('invalid', 'valid');
+            if (hintEl) {
+                hintEl.classList.remove('error', 'success');
+                if (isOptional) {
+                    hintEl.textContent = 'اختياري - لو اتكتب لازم 11 رقم';
+                } else {
+                    hintEl.textContent = '11 رقم بالظبط (مثال: 01012345678)';
+                }
+            }
+            return false;
+        }
+
+        // لازم أرقام إنجليزية بس (نمنع العربي)
+        if (/[٠-٩]/.test(cleaned)) {
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            if (hintEl) {
+                hintEl.classList.add('error');
+                hintEl.classList.remove('success');
+                hintEl.textContent = '❌ من فضلك اكتب الأرقام بالإنجليزية (0-9)';
+            }
+            return false;
+        }
+
+        // لازم 11 رقم
+        if (cleaned.length !== 11) {
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            if (hintEl) {
+                hintEl.classList.add('error');
+                hintEl.classList.remove('success');
+                hintEl.textContent = `❌ لازم 11 رقم — انت كتبت ${cleaned.length} رقم`;
+            }
+            return false;
+        }
+
+        // ✅ صح
+        input.classList.remove('invalid');
+        input.classList.add('valid');
+        if (hintEl) {
+            hintEl.classList.remove('error');
+            hintEl.classList.add('success');
+            hintEl.textContent = '✅ رقم صحيح';
+        }
+        return true;
+    }
 
     /* =========================================================
        قائمة المحافظات والمدن (نفس اللي في IBC.html - كاملة)
@@ -835,6 +925,12 @@
         }
     }
 
+    /* ✅ دالة التحقق من صحة رقم الهاتف قبل الحفظ */
+    function isValidPhone(value) {
+        const cleaned = (value || '').trim();
+        return /^\d{11}$/.test(cleaned); // 11 رقم بالظبط (أرقام إنجليزية)
+    }
+
     async function saveData() {
         if (!currentType) { showToast('اختر نوع العميل أولاً', 'error'); return; }
 
@@ -846,40 +942,90 @@
 
         if (currentType === 'new') {
             const name = document.getElementById('customer_name').value.trim();
-            const phone = document.getElementById('phone1').value.trim();
-            if (!name || !phone) {
+            const phone1 = document.getElementById('phone1').value.trim();
+            const phone2 = document.getElementById('phone2').value.trim();
+
+            // ✅ التحقق من الاسم
+            if (!name) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
-                showToast('الاسم والهاتف مطلوبان', 'error');
+                showToast('اسم العميل مطلوب', 'error');
                 return;
             }
+
+            // ✅ التحقق من هاتف 1
+            if (!phone1) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('رقم الهاتف 1 مطلوب', 'error');
+                document.getElementById('phone1').focus();
+                return;
+            }
+            if (!isValidPhone(phone1)) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('❌ رقم الهاتف 1 لازم 11 رقم بالظبط', 'error');
+                document.getElementById('phone1').focus();
+                return;
+            }
+
+            // ✅ التحقق من هاتف 2 (اختياري، بس لو مكتوب لازم 11 رقم)
+            if (phone2 && !isValidPhone(phone2)) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('❌ رقم الهاتف 2 لازم 11 رقم بالظبط (أو سيبه فاضي)', 'error');
+                document.getElementById('phone2').focus();
+                return;
+            }
+
             data.customer_name = name;
-            data.phone1 = phone;
-            data.phone2 = document.getElementById('phone2').value;
+            data.phone1 = phone1;
+            data.phone2 = phone2;
             data.serial = document.getElementById('serial').value;
             data.product = document.getElementById('product').value;
             data.fault = document.getElementById('fault').value;
             data.governorate = document.getElementById('governorate').value;
             data.city = document.getElementById('city').value;
             data.address = document.getElementById('address').value;
-            data.report_type = document.getElementById('report_type').value;   // ✅ نوع البلاغ
+            data.report_type = document.getElementById('report_type').value;
         } else {
             const name = document.getElementById('p_customer_name').value.trim();
-            const phone = document.getElementById('p_phone1').value.trim();
+            const phone1 = document.getElementById('p_phone1').value.trim();
             const acc = document.getElementById('p_account_number').value.trim();
-            if (!name || !phone || !acc) {
+
+            // ✅ التحقق من الاسم
+            if (!name) {
                 btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
-                showToast('الاسم والهاتف ورقم الأكونت مطلوبين', 'error');
+                showToast('اسم العميل مطلوب', 'error');
                 return;
             }
+
+            // ✅ التحقق من هاتف 1
+            if (!phone1) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('رقم الهاتف 1 مطلوب', 'error');
+                document.getElementById('p_phone1').focus();
+                return;
+            }
+            if (!isValidPhone(phone1)) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('❌ رقم الهاتف 1 لازم 11 رقم بالظبط', 'error');
+                document.getElementById('p_phone1').focus();
+                return;
+            }
+
+            // ✅ التحقق من رقم الأكونت
+            if (!acc) {
+                btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                showToast('رقم الأكونت مطلوب', 'error');
+                return;
+            }
+
             data.customer_name = name;
-            data.phone1 = phone;
+            data.phone1 = phone1;
             data.account_number = acc;
             data.last_ticket_number = document.getElementById('p_last_ticket').value;
             data.product = document.getElementById('p_product').value;
             data.serial = document.getElementById('p_serial').value;
             data.current_fault = document.getElementById('p_current_fault').value;
             data.booking_address = document.getElementById('p_booking_address').value;
-            data.report_type = document.getElementById('p_report_type').value; // ✅ نوع البلاغ
+            data.report_type = document.getElementById('p_report_type').value;
         }
 
         const result = await supabaseClient.from('tickets').insert([data]);
