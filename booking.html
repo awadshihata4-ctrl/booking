@@ -131,7 +131,42 @@
                 </div>
 
                 <div class="field"><label>العنوان</label><input type="text" id="address" placeholder="الشارع ورقم العمارة"></div>
-                <div class="field"><label>المنتج</label><input type="text" id="product" placeholder="اسم المنتج"></div>
+
+                <!-- ✅ قائمة المنتجات -->
+                <div class="field">
+                    <label>المنتج</label>
+                    <select id="product" onchange="toggleOtherProduct(this, 'product_other')">
+                        <option value="">-- اختر المنتج --</option>
+                        <option value="التكيف">التكيف</option>
+                        <option value="الثلاجة">الثلاجة</option>
+                        <option value="الغسالة">الغسالة</option>
+                        <option value="البوتجاز">البوتجاز</option>
+                        <option value="الشاشة">الشاشة</option>
+                        <option value="الديب فريزر">الديب فريزر</option>
+                        <option value="مبرد المياه">مبرد المياه</option>
+                        <option value="السخان الغاز">السخان الغاز</option>
+                        <option value="السخان الكهرباء">السخان الكهرباء</option>
+                        <option value="المروحة">المروحة</option>
+                        <option value="المكنسة">المكنسة</option>
+                        <option value="الشفاط">الشفاط</option>
+                        <option value="الدفاية">الدفاية</option>
+                        <option value="المكواة">المكواة</option>
+                        <option value="فلتر المياه">فلتر المياه</option>
+                        <option value="محضر الطعام">محضر الطعام</option>
+                        <option value="شفاط حائطي">شفاط حائطي</option>
+                        <option value="فرن بلت ان">فرن بلت ان</option>
+                        <option value="مسطح بلت ان">مسطح بلت ان</option>
+                        <option value="التكييف الصحراوي">التكييف الصحراوي</option>
+                        <option value="اخري">اخري</option>
+                    </select>
+                </div>
+
+                <!-- ✅ حقل إضافي يظهر لو اختار "اخري" -->
+                <div class="field" id="product_other_wrap" style="display:none;">
+                    <label>اسم المنتج (يدوي) *</label>
+                    <input type="text" id="product_other" placeholder="اكتب اسم المنتج">
+                </div>
+
                 <div class="field"><label>السريال</label><input type="text" id="serial" placeholder="SN-XXXXXX"></div>
 
                 <div class="field field-full"><label>العطل</label><textarea id="fault" placeholder="وصف العطل"></textarea></div>
@@ -165,7 +200,42 @@
 
                 <div class="field"><label>رقم كونتكت نمبر  *</label><input type="text" id="p_account_number" placeholder="ACC-XXXXX"></div>
                 <div class="field"><label>رقم آخر بلاغ</label><input type="text" id="p_last_ticket" placeholder="TKT-XXXXX"></div>
-                <div class="field"><label>المنتج</label><input type="text" id="p_product" placeholder="اسم المنتج"></div>
+
+                <!-- ✅ قائمة المنتجات -->
+                <div class="field">
+                    <label>المنتج</label>
+                    <select id="p_product" onchange="toggleOtherProduct(this, 'p_product_other')">
+                        <option value="">-- اختر المنتج --</option>
+                        <option value="التكيف">التكيف</option>
+                        <option value="الثلاجة">الثلاجة</option>
+                        <option value="الغسالة">الغسالة</option>
+                        <option value="البوتجاز">البوتجاز</option>
+                        <option value="الشاشة">الشاشة</option>
+                        <option value="الديب فريزر">الديب فريزر</option>
+                        <option value="مبرد المياه">مبرد المياه</option>
+                        <option value="السخان الغاز">السخان الغاز</option>
+                        <option value="السخان الكهرباء">السخان الكهرباء</option>
+                        <option value="المروحة">المروحة</option>
+                        <option value="المكنسة">المكنسة</option>
+                        <option value="الشفاط">الشفاط</option>
+                        <option value="الدفاية">الدفاية</option>
+                        <option value="المكواة">المكواة</option>
+                        <option value="فلتر المياه">فلتر المياه</option>
+                        <option value="محضر الطعام">محضر الطعام</option>
+                        <option value="شفاط حائطي">شفاط حائطي</option>
+                        <option value="فرن بلت ان">فرن بلت ان</option>
+                        <option value="مسطح بلت ان">مسطح بلت ان</option>
+                        <option value="التكييف الصحراوي">التكييف الصحراوي</option>
+                        <option value="اخري">اخري</option>
+                    </select>
+                </div>
+
+                <!-- ✅ حقل إضافي يظهر لو اختار "اخري" -->
+                <div class="field" id="p_product_other_wrap" style="display:none;">
+                    <label>اسم المنتج (يدوي) *</label>
+                    <input type="text" id="p_product_other" placeholder="اكتب اسم المنتج">
+                </div>
+
                 <div class="field"><label>السريال</label><input type="text" id="p_serial" placeholder="SN-XXXXXX"></div>
 
                 <div class="field field-full"><label>العطل الحالي *</label><textarea id="p_current_fault" placeholder="وصف العطل الحالي"></textarea></div>
@@ -242,6 +312,24 @@
             hintEl.textContent = '✅ رقم صحيح';
         }
         return true;
+    }
+
+    /* =========================================================
+       ✅ إظهار/إخفاء حقل "أخرى" حسب اختيار المنتج
+       ========================================================= */
+    function toggleOtherProduct(selectEl, otherInputId) {
+        const otherInput = document.getElementById(otherInputId);
+        const wrapper = otherInput.closest('.field');
+
+        if (selectEl.value === 'اخري') {
+            wrapper.style.display = 'block';
+            otherInput.required = true;
+            otherInput.focus();
+        } else {
+            wrapper.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
     }
 
     /* =========================================================
@@ -974,11 +1062,24 @@
                 return;
             }
 
+            // ✅ قراءة المنتج (سواء من القائمة أو من حقل "أخرى")
+            let productValue = document.getElementById('product').value;
+            if (productValue === 'اخري') {
+                const customProduct = document.getElementById('product_other').value.trim();
+                if (!customProduct) {
+                    btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                    showToast('❌ لازم تكتب اسم المنتج لأنك اخترت "اخري"', 'error');
+                    document.getElementById('product_other').focus();
+                    return;
+                }
+                productValue = customProduct;
+            }
+
             data.customer_name = name;
             data.phone1 = phone1;
             data.phone2 = phone2;
             data.serial = document.getElementById('serial').value;
-            data.product = document.getElementById('product').value;
+            data.product = productValue;
             data.fault = document.getElementById('fault').value;
             data.governorate = document.getElementById('governorate').value;
             data.city = document.getElementById('city').value;
@@ -1017,11 +1118,24 @@
                 return;
             }
 
+            // ✅ قراءة المنتج (سواء من القائمة أو من حقل "أخرى")
+            let productValue = document.getElementById('p_product').value;
+            if (productValue === 'اخري') {
+                const customProduct = document.getElementById('p_product_other').value.trim();
+                if (!customProduct) {
+                    btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+                    showToast('❌ لازم تكتب اسم المنتج لأنك اخترت "اخري"', 'error');
+                    document.getElementById('p_product_other').focus();
+                    return;
+                }
+                productValue = customProduct;
+            }
+
             data.customer_name = name;
             data.phone1 = phone1;
             data.account_number = acc;
             data.last_ticket_number = document.getElementById('p_last_ticket').value;
-            data.product = document.getElementById('p_product').value;
+            data.product = productValue;
             data.serial = document.getElementById('p_serial').value;
             data.current_fault = document.getElementById('p_current_fault').value;
             data.booking_address = document.getElementById('p_booking_address').value;
